@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        .box{
+            width: 500px;
+            height: 693px;
+            margin: 0 auto;
+            background: url('./bg.jpg') no-repeat ;
+            background-size: auto; 
+            position: relative;
+        }
+    </style>
+</head>
+<body>
+    <div class="box">
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script>
+        jQuery.fn.sport = function (options) {
+            if(this.length === 0){
+                throw 'The node does not exist! \n    \n                by Sin-wer';
+                return;
+            }
+            var _this = this;
+            /* if(!options){
+                throw '缺少必传参数!';
+                return;
+            } */
+            options = options || {};
+            options.type = options.type || 2;                   //类型 默认为2  1下图片  2 下雪花
+            options.direction = options.direction || "down";    //方向 默认为向下
+            options.num = options.num || 25;                    //数量 默认为向下
+            options.top = options.top || 0;                     //移动物体的初始top值
+            options.left =  0;                                  //移动物体的初始left值
+            options.height = options.height || 0;               //移动物体的高度
+            options.offset = options.offset || 1;               //移动物体的每次偏移量
+            options.maxOffset = options.maxOffset || 40;        //移动物体的最大偏移量(差值) 
+            options.speed = options.speed || 10;                //移动物体的下落速度(毫秒)
+            options.complete = 0;                               //完成个数
+            options.before = options.before;                    //开始之前的函数
+            options.cb = options.cb;                            //完成之后的回调
+            // console.log(options);
+                                            
+            init();
+            function init(params) {
+                if(options.before){
+                    options.before();
+                }
+                options.height = _this.height();
+                if(options.type === 1){
+                    var Img = new Image();
+                    Img.src = options.url;
+                    Img.onload = function(){
+                        options.top = -Img.height -10;
+                        start();
+                    }
+                }else{
+                    start();
+                }
+            }
+            function start() {
+                var itme = 0;
+                var t1 = setInterval(function(){
+                    itme++;
+                    creatDiv();
+                    if( itme >= options.num){
+                        clearInterval(t1);
+                    }
+                },200);
+            }
+            
+            function creatDiv(){
+                var _left = Math.random(0,1)*_this.width()-options.offset;
+                var id = randomId(10);
+                if(options.type === 1){
+                    _this.append('<div id="S'+id+'" style="position:absolute;top:'+options.top+'px;left:'+_left+'px;"><img src ="'+options.url+'" /></div>');
+                    moveLeft($("#S"+id),_left);
+                }else if(options.type === 2){
+                    _this.append('<div id="S'+id+'" style="position:absolute;top:'+options.top+'px;left:'+_left+'px;font-size:20px;color:#fff;">❉</div>');
+                    moveLeft($("#S"+id),_left);
+                }
+                
+            }
+            // 让其向下移动
+            function moveDown(dom){
+                var moveElem = dom[0];
+                var eleStyle=window.getComputedStyle(moveElem);
+                var eleTop=parseInt(eleStyle.top);
+                dom.ttime=setInterval(function(){
+                    eleTop++;
+                    moveElem.style.top = eleTop+"px";
+                    options.height = _this.height();
+                    if(eleTop >= options.height){
+                        clearInterval(dom.ttime);
+                        clearInterval(dom.ltime);
+                        dom.remove();
+                        options.complete++;
+                        if(options.complete >= options.num){
+                            options.complete = 0;
+                            if(options.cb){
+                                options.cb();
+                            }
+                        }
+                    } 
+                },options.speed);
+            }
+            function moveLeft(dom,left){
+                var moveElem = dom[0];
+                dom.eleStyle = window.getComputedStyle(moveElem);
+                dom.eleLeft = parseInt(dom.eleStyle.left); //当前偏移值向左还是向右
+                dom.Offset = [-1,1][Math.floor(Math.random()*2)] * options.offset;
+                dom.left = left;
+                dom.ltime = setInterval(function(){
+                    if(dom.Offset >0){
+                        dom.eleLeft++;
+                        if(dom.eleLeft - dom.left > options.maxOffset){
+                            dom.Offset = -1;
+                        }
+                    }else{
+                        dom.eleLeft--;
+                        if(dom.eleLeft - dom.left  < -options.maxOffset){
+                            dom.Offset = 1;
+                        }
+                    }
+                    moveElem.style.left = dom.eleLeft+"px";
+                },20);
+                moveDown(dom);
+            }
+            function randomId(len) {
+                len = len || 32;
+                var chars = 'ABCDEFGHJKMNPQRSTWXYZabcdefghijkmnopqrstuvwxyz0123456789ABCDEFGHJKMNPQRSTWXYZabcdefghijkmnopqrstuvwxyz0123456789';
+                var maxPos = chars.length;
+                var pwd = '';
+                for (i = 0; i < len; i++) {
+                    pwd += chars.charAt(Math.floor(Math.random() * maxPos));
+                }
+                return pwd;
+            }
+        };
+        $('.box').sport({
+            type:1,
+            url:"http://res.agoent.com/club_v2/images/emoji/69.gif",
+            maxOffset:20,
+            before:function(){
+                console.log('开始之前!');
+            },
+            cb:function(){
+                console.log('全部完成!');
+            }
+        });
+        
+    </script>
+</body>
+</html>
